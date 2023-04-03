@@ -6,13 +6,14 @@ import Image from "next/image";
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api"
 
+import { LoadingSpinner } from "~/components/loading";
+
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
     const { user } = useUser();
-
     if(!user) return null;
     
     return <div className="flex gap-4 w-full">
@@ -22,8 +23,10 @@ const CreatePostWizard = () => {
 };
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+
 const Postview = (props: PostWithUser) => {
     const { post, author } = props;
+
     return (
         <div key={post.id} className="flex gap-4 p-4 border-b border-slate-400">
             <Image src={author.profileImageUrl} alt={`@${author.username}'s profile picture`} width={56} height={56} className="w-16 h-16 rounded-full"/>
@@ -34,16 +37,36 @@ const Postview = (props: PostWithUser) => {
                 </div>
                 <span>{post.content}</span>
             </div>
-        </div>);
+        </div>
+    );
 }
 
+const Feed = () => {
+    const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
+
+    if(postsLoading) return <LoadingSpinner />;
+    if(!data) return <div>Something went wrong</div>;
+
+    return(
+        <div className="flex flex-col">
+            {data?.map((fullPost) => <Postview {...fullPost} key={fullPost.post.id}/>)}
+        </div>
+    );
+};
+
 const Home: NextPage = () => {
-  const user = useUser();
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
+//  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
+//  we would want to fetch the data here even if we don't use it here is 
+//  for early loading, also we can start loading asap for quicker loading 
+//  react query would cache the request and know if we are requesting same data twice 
+    
+    api.posts.getAll.useQuery();
 
-  const { data, isLoading } = api.posts.getAll.useQuery();
-
-  if(isLoading) return <div>Loading...</div>;
-  if(!data) return <div>Something went wrong.</div>;
+    // return empty div if user isn't loaded yet since user tends to load faster;
+    // also clerk and react query hooks are inverted, it is isLoaded for clerk and 
+    // is loading for react query;
+    if(!userLoaded) return <div />;
 
   return (
     <>
@@ -55,11 +78,14 @@ const Home: NextPage = () => {
       <main className="flex justify-center h-screen">
           <div className="w-full md:max-w-2xl h-full border-x border-slate-400">
               <div className="flex border-b border-slate-400 p-4">
-                  {!user.isSignedIn ? <SignInButton /> : <CreatePostWizard />}
+                  {!isSignedIn && (
+                    <div className="flex justify-center">
+                        <SignInButton />
+                    </div>
+                  )}
+                  {isSignedIn && <CreatePostWizard />}
               </div>
-              <div className="flex flex-col">
-                {data?.map((fullPost) => <Postview {...fullPost} key={fullPost.post.id}/>)}
-              </div>
+              <Feed />
           </div>
       </main>
     </>
