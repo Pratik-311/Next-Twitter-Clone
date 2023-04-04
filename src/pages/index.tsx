@@ -10,15 +10,25 @@ import { LoadingSpinner } from "~/components/loading";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useState } from "react";
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
+    const [input, setInput] = useState<string>("");
     const { user } = useUser();
     if(!user) return null;
-    
+    const { mutate } = api.posts.create.useMutation();
+
     return <div className="flex gap-4 w-full">
         <Image src={user.profileImageUrl} alt="Profile Image" width={56} height={56} className="w-16 h-16 rounded-full"/>
-        <input placeholder="Type Emojis Here.." className="bg-transparent outline-none grow"/>
+        <input 
+            placeholder="Type Emojis Here.." 
+            className="bg-transparent outline-none grow"
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+        />
+        <button onClick={() => mutate({ content: input })}>Post</button>
     </div>
 };
 
