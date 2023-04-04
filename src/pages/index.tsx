@@ -17,7 +17,13 @@ const CreatePostWizard = () => {
     const [input, setInput] = useState<string>("");
     const { user } = useUser();
     if(!user) return null;
-    const { mutate } = api.posts.create.useMutation();
+    const ctx = api.useContext();
+    const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+            onSuccess: () => {
+                setInput("");
+                void ctx.posts.getAll.invalidate();
+            },
+        });
 
     return <div className="flex gap-4 w-full">
         <Image src={user.profileImageUrl} alt="Profile Image" width={56} height={56} className="w-16 h-16 rounded-full"/>
@@ -27,6 +33,7 @@ const CreatePostWizard = () => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            disabled={isPosting}
         />
         <button onClick={() => mutate({ content: input })}>Post</button>
     </div>
