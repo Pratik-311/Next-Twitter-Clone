@@ -6,11 +6,12 @@ import Image from "next/image";
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api"
 
-import { LoadingSpinner } from "~/components/loading";
+import { LoadingSpinner, LoadingStatus } from "~/components/loading";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
@@ -23,6 +24,11 @@ const CreatePostWizard = () => {
                 setInput("");
                 void ctx.posts.getAll.invalidate();
             },
+            onError: (e) => {
+                const errorMessage = e.data?.zodError?.fieldErrors.content;
+                if(errorMessage && errorMessage[0]) toast.error(errorMessage[0]);
+                else toast.error("Failed to post, please try again.");
+            }
         });
 
     return <div className="flex gap-4 w-full">
@@ -34,8 +40,19 @@ const CreatePostWizard = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isPosting}
+            onKeyDown={(e) => {
+                if(e.key === "Enter") {
+                    e.preventDefault();
+                    if(input !== "") mutate({content: input});
+                }
+            }}
         />
-        <button onClick={() => mutate({ content: input })}>Post</button>
+        {input !== "" && !isPosting && (<button onClick={() => mutate({ content: input })} disabled={isPosting}>Post</button>)}
+        {isPosting && 
+            <div className="flex justify-center items-center">
+                <LoadingStatus size={20}/>
+            </div>
+        }
     </div>
 };
 
