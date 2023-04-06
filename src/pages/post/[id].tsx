@@ -12,7 +12,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import Link from "next/link";
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
@@ -48,9 +47,7 @@ const CreatePostWizard = () => {
                 }
             }}
         />
-        {input !== "" && !isPosting && 
-            (<button onClick={() => mutate({ content: input })} disabled={isPosting}>Post</button>)
-        }
+        {input !== "" && !isPosting && (<button onClick={() => mutate({ content: input })} disabled={isPosting}>Post</button>)}
         {isPosting && 
             <div className="flex justify-center items-center">
                 <LoadingStatus size={20}/>
@@ -66,22 +63,11 @@ const Postview = (props: PostWithUser) => {
 
     return (
         <div key={post.id} className="flex gap-4 p-4 border-b border-slate-400">
-            <Image 
-                src={author.profileImageUrl} 
-                alt={`@${author.username}'s profile picture`} 
-                width={56} 
-                height={56} 
-                className="w-16 h-16 
-                rounded-full"
-            />
+            <Image src={author.profileImageUrl} alt={`@${author.username}'s profile picture`} width={56} height={56} className="w-16 h-16 rounded-full"/>
             <div className="flex flex-col">
                 <div className="flex gap-1 text-slate-400">
-                    <Link href={`@${author.username}`}>
-                        <span>{`@${author.username}`}</span>
-                    </Link>
-                    <Link href={`/post/${post.id}`}>
-                        <span className="font-thin">{` . ${dayjs(post.createdAt).fromNow()}`}</span>
-                    </Link>
+                    <span>{`@${author.username}`}</span>
+                    <span className="font-thin">{` . ${dayjs(post.createdAt).fromNow()}`}</span>
                 </div>
                 <span className="text-2xl">{post.content}</span>
             </div>
@@ -102,7 +88,7 @@ const Feed = () => {
     );
 };
 
-const Home: NextPage = () => {
+const PostViewPage: NextPage = () => {
   const { isSignedIn, isLoaded: userLoaded } = useUser();
 //  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 //  we would want to fetch the data here even if we don't use it here is 
@@ -125,19 +111,11 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex justify-center h-screen">
           <div className="w-full md:max-w-2xl h-full border-x border-slate-400">
-              <div className="flex border-b border-slate-400 p-4">
-                  {!isSignedIn && (
-                    <div className="flex justify-center">
-                        <SignInButton />
-                    </div>
-                  )}
-                  {isSignedIn && <CreatePostWizard />}
-              </div>
-              <Feed />
+            Post View Page;
           </div>
       </main>
     </>
   );
 };
 
-export default Home;
+export default PostViewPage;
