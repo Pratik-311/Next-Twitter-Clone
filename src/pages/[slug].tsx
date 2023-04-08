@@ -7,6 +7,25 @@ import { appRouter } from "~/server/api/root";
 import SuperJSON from "superjson";
 import { prisma } from "~/server/db";
 import { PageLayout } from "~/components/layout";
+import { LoadingSpinner } from "~/components/loading";
+import { PostView } from "~/components/postview";
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+  if (!data || data.length === 0) return <div>User Has Not Posted Yet...</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullpost) => (
+        <PostView {...fullpost} key={fullpost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
@@ -35,6 +54,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
           data.username || ""
         }`}</div>
         <div className="w-full border-b border-slate-400"></div>
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );
